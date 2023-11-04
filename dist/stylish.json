@@ -1,0 +1,899 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "STYLiSH Cowork Group 6 API-Doc",
+    "description": "Host Name: fake-shop.store\n\nAPI - Verion: 1.0",
+    "version": "1.0.1"
+  },
+  "servers": [
+    {
+      "url": "https://fake-shop.store/api/v1"
+    }
+  ],
+  "tags": [
+    {
+      "name": "products",
+      "description": "Products information"
+    },
+    {
+      "name": "user",
+      "description": "User information"
+    },
+    {
+      "name": "order",
+      "description": "Order information"
+    },
+    {
+      "name": "marketing",
+      "description": "Marketing information"
+    }
+  ],
+  "paths": {
+    "/products/{category}": {
+      "get": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Get all products by category",
+        "description": "Get one kind of products, six products per request",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "description": "Can be all, women, men, accessories",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "women",
+                "men",
+                "accessories"
+              ]
+            }
+          },
+          {
+            "name": "paging",
+            "in": "query",
+            "description": "Page of products",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Product"
+                      }
+                    },
+                    "next_paging": {
+                      "type": "integer",
+                      "format": "int64",
+                      "example": 2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid page or category"
+          }
+        }
+      }
+    },
+    "/products/search": {
+      "get": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Search for specific products",
+        "description": "Multiple filter can be selected while searching",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "Search for products contain this keyword",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "paging",
+            "in": "query",
+            "description": "Pages",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "color",
+            "in": "query",
+            "description": "Search for color you like",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "red",
+                "pink",
+                "blue"
+              ]
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Search for size you want",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "S",
+                "M",
+                "L",
+                "XL"
+              ]
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Search for category",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "women",
+                "men",
+                "accessories"
+              ]
+            }
+          },
+          {
+            "name": "sorting",
+            "in": "query",
+            "description": "How to sort the products, default popular",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "popular",
+                "time_asc",
+                "time_desc",
+                "price_asc",
+                "price_desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Product"
+                      }
+                    },
+                    "next_paging": {
+                      "type": "integer",
+                      "format": "int64",
+                      "example": 2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid status value"
+          }
+        }
+      }
+    },
+    "/products/recommendation": {
+      "get": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Search for recommended products",
+        "description": "Login user will receive recommended products, else will receive popular products.",
+        "parameters": [
+          {
+            "name": "auth",
+            "in": "header",
+            "description": "Show who you are! write bearer prefix",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Product"
+                      }
+                    },
+                    "next_paging": {
+                      "type": "integer",
+                      "format": "int64",
+                      "example": 2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid status value"
+          }
+        }
+      }
+    },
+    "/products/details": {
+      "get": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Search for one product detail",
+        "description": "Search for one product detail, id is a must",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "provide the product id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Product"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id value"
+          }
+        }
+      }
+    },
+    "/user/signup": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Sign up for new account",
+        "description": "Create a new account with email and password",
+        "requestBody": {
+          "description": "Native sign up",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Kevin"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "kevin@gmail.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "123password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string",
+                      "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6joiYXJ0aHVIjoxNjEzNTY3MzA0fQ.6EPCOfBGynidAfpVqlvbHGWHCJ5LZLtKvPaQ"
+                    },
+                    "access_expired": {
+                      "type": "integer",
+                      "description": "Access token expired time in seconds",
+                      "example": 3600
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id value"
+          }
+        }
+      }
+    },
+    "/user/signin": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Sign in for exist account",
+        "description": "Sign in with email, pass word or Facabook token",
+        "requestBody": {
+          "description": "Native sign up",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "provider": {
+                        "type": "string",
+                        "default": "native"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "password": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "provider": {
+                        "type": "string",
+                        "default": "facebook"
+                      },
+                      "access_token": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                ]
+              },
+              "examples": {
+                "nativeExample": {
+                  "value": {
+                    "provider": "native",
+                    "email": "kevin@gmail.com",
+                    "password": "123password"
+                  }
+                },
+                "facebookExample": {
+                  "value": {
+                    "provider": "facebook",
+                    "access_token": "EAACEdEose0cBAHc6hv9kK8bMNs4XTrT0kVC1RgDZCVBptXW12AI"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string",
+                      "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6joiYXJ0aHVIjoxNjEzNTY3MzA0fQ.6EPCOfBGynidAfpVqlvbHGWHCJ5LZLtKvPaQ"
+                    },
+                    "access_expired": {
+                      "type": "integer",
+                      "description": "Access token expired time in seconds",
+                      "example": 3600
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Client Error Response"
+          },
+          "403": {
+            "description": "Sign in fail"
+          }
+        }
+      }
+    },
+    "/user/profile": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "User profile",
+        "description": "Login user can see profile info",
+        "parameters": [
+          {
+            "name": "auth",
+            "in": "header",
+            "description": "Show who you are! write Bearer prefix",
+            "example": "Bearer 123456677",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token"
+          },
+          "403": {
+            "description": "Wrong token"
+          }
+        }
+      }
+    },
+    "/order/checkout": {
+      "post": {
+        "tags": [
+          "order"
+        ],
+        "summary": "Subit an order",
+        "description": "Create a new order",
+        "parameters": [
+          {
+            "name": "auth",
+            "in": "header",
+            "description": "Show who you are! write Bearer prefix",
+            "example": "Bearer 123456677",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Credit card prime from tappay, and order information",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "prime": {
+                    "type": "string",
+                    "example": "ccc1491581661f700bcc1cafec673c741f0665ca77550fe828ef38ee1437a2b8"
+                  },
+                  "order": {
+                    "$ref": "#/components/schemas/Order"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "number": {
+                          "type": "integer",
+                          "format": "int64",
+                          "example": 4465123465
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token"
+          },
+          "403": {
+            "description": "Wrong token"
+          }
+        }
+      }
+    },
+    "/marketing/campaigns": {
+      "get": {
+        "tags": [
+          "marketing"
+        ],
+        "summary": "Marketing campaigns",
+        "description": "Get campaigns information",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Campaign"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token"
+          },
+          "403": {
+            "description": "Wrong token"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "category": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "texture": {
+            "type": "string"
+          },
+          "wash": {
+            "type": "string"
+          },
+          "place": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "story": {
+            "type": "string"
+          },
+          "colors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Color"
+            }
+          },
+          "sizes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Variant"
+            }
+          },
+          "main_image": {
+            "type": "string"
+          },
+          "images": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "id": 1234,
+          "category": "men",
+          "tags": [
+            "正式",
+            "隨性",
+            89
+          ],
+          "title": "厚實毛呢格子外套",
+          "description": "高抗寒素材選用，保暖也時尚有型",
+          "price": 2200,
+          "texture": "棉、聚脂纖維",
+          "wash": "手洗（水溫40度",
+          "place": "韓國",
+          "note": "實品顏色以單品照為主",
+          "story": "你絕對不能錯過的超值商品",
+          "colors": [
+            {
+              "code": "334455",
+              "name": "深藍"
+            },
+            {
+              "code": "FFFFFF",
+              "name": "白色"
+            }
+          ],
+          "sizes": [
+            "S",
+            "M"
+          ],
+          "variants": [
+            {
+              "color_code": "334455",
+              "size": "S",
+              "stock": 5
+            },
+            {
+              "color_code": "334455",
+              "size": "M",
+              "stock": 10
+            },
+            {
+              "color_code": "FFFFFF",
+              "size": "S",
+              "stock": 0
+            },
+            {
+              "color_code": "FFFFFF",
+              "size": "M",
+              "stock": 2
+            }
+          ],
+          "main_image": "https://stylish.com/main.jpg",
+          "images": [
+            "https://stylish.com/0.jpg",
+            "https://stylish.com/1.jpg",
+            "https://stylish.com/2.jpg"
+          ]
+        }
+      },
+      "Color": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "Variant": {
+        "type": "object",
+        "properties": {
+          "color_code": {
+            "type": "string"
+          },
+          "size": {
+            "type": "string"
+          },
+          "stock": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "Campaign": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 7
+          },
+          "picture": {
+            "type": "string",
+            "example": "http://example/picture.jpg"
+          },
+          "story": {
+            "type": "string",
+            "example": "This is a good campaign"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "picture": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "id": 123,
+          "provider": "native",
+          "name": "Kevin",
+          "email": "kevin@gmail.com",
+          "picture": "http://example/picture.jpg"
+        }
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "shipping": {
+            "type": "string",
+            "example": "delivery"
+          },
+          "payment": {
+            "type": "string",
+            "example": "credit_card"
+          },
+          "subtotal": {
+            "type": "integer",
+            "format": "int64",
+            "example": "1234,"
+          },
+          "freight": {
+            "type": "integer",
+            "format": "int64",
+            "example": 14
+          },
+          "total": {
+            "type": "integer",
+            "format": "int 64",
+            "example": 1300
+          },
+          "recipient": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "example": "Luke"
+              },
+              "phone": {
+                "type": "string",
+                "example": "0987654321"
+              },
+              "email": {
+                "type": "string",
+                "example": "luke@gmail.com"
+              },
+              "address": {
+                "type": "string",
+                "example": "市政府站"
+              },
+              "time": {
+                "type": "string",
+                "example": "morning"
+              }
+            }
+          },
+          "list": {
+            "type": "array",
+            "items": {
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 201807202157
+                },
+                "name": {
+                  "type": "string",
+                  "example": "活力花紋長筒牛仔褲"
+                },
+                "price": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 1299
+                },
+                "color": {
+                  "$ref": "#/components/schemas/Color"
+                },
+                "size": {
+                  "type": "string",
+                  "example": "M"
+                },
+                "qty": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "Authorization": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
