@@ -174,7 +174,7 @@
               "type": "string",
               "enum": [
                 "popular",
-                "time_desc",
+                "newest",
                 "price_asc",
                 "price_desc"
               ]
