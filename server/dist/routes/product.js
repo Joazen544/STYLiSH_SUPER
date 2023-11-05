@@ -1,13 +1,14 @@
 import { Router } from "express";
 import { param, query } from "express-validator";
-import { getProducts, getProduct, searchProducts, createProduct, checkFileType, saveImagesToDisk, } from "../controllers/product.js";
+import { getProducts, getProduct, createProduct, checkFileType, saveImagesToDisk, } from "../controllers/product.js";
+import { searchProductsId } from "../controllers/search.js";
 import { uploadToBuffer } from "../middleware/multer.js";
 import * as validator from "../middleware/validator.js";
 const router = Router();
 router.route("/products").get(getProducts);
 router
     .route("/products/search")
-    .get(query("keyword").not().isEmpty().trim(), query("paging").if(query("paging").exists()).isInt(), validator.handleResult, searchProducts);
+    .get(query("keyword").not().isEmpty().trim(), query("paging").if(query("paging").exists()).isInt(), query("category").if(query("category").exists()).isString(), validator.handleResult, searchProductsId);
 router
     .route("/products/details")
     .get(query("id").not().isEmpty().trim(), validator.handleResult, getProduct);

@@ -8,6 +8,7 @@ import {
   checkFileType,
   saveImagesToDisk,
 } from "../controllers/product.js";
+import { searchProductsId } from "../controllers/search.js";
 import { uploadToBuffer } from "../middleware/multer.js";
 import * as validator from "../middleware/validator.js";
 
@@ -20,8 +21,9 @@ router
   .get(
     query("keyword").not().isEmpty().trim(),
     query("paging").if(query("paging").exists()).isInt(),
+    query("category").if(query("category").exists()).isString(),
     validator.handleResult,
-    searchProducts
+    searchProductsId
   );
 
 router
