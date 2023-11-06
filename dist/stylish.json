@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://www.fake-shop.store/"
+      "url": "https://www.fake-shop.store/api"
     }
   ],
   "tags": [
