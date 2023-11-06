@@ -2,12 +2,12 @@
   "openapi": "3.0.3",
   "info": {
     "title": "STYLiSH Cowork Group 6 API-Doc",
-    "description": "Host Name: fake-shop.store\n\nAPI - Verion: 1.0",
+    "description": "Host Name: www.joazen.website\n\nAPI - Verion: 1.0",
     "version": "1.0.1"
   },
   "servers": [
     {
-      "url": "https://www.fake-shop.store/api"
+      "url": "https://www.joazen.website/api"
     }
   ],
   "tags": [
