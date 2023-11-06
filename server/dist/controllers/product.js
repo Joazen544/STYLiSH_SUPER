@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { nanoid } from "nanoid";
 import { fileTypeFromBuffer } from "file-type";
+import { uploadProductsToElasticSearch } from "../models/elasticsearch.js";
 import * as productModel from "../models/product.js";
 import * as productImageModel from "../models/productImage.js";
 import * as productVariantModel from "../models/productVariant.js";
@@ -179,6 +180,8 @@ export async function createProduct(req, res) {
         if (typeof productId !== "number") {
             throw new Error("create product failed");
         }
+        //
+        const insertElasticResult = await uploadProductsToElasticSearch(req.body);
         if (Array.isArray(res.locals.images) && res.locals.images.length > 0) {
             const productImageData = res.locals.images.map((image) => {
                 return {

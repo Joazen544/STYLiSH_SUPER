@@ -11,6 +11,11 @@ import {
 import { searchProductsId } from "../controllers/search.js";
 import { uploadToBuffer } from "../middleware/multer.js";
 import * as validator from "../middleware/validator.js";
+//import { uploadProductsToElasticSearch } from "../models/elasticsearch.js";
+
+////
+//import { NextFunction, Request, Response } from "express";
+////
 
 const router = Router();
 
@@ -38,7 +43,17 @@ router
     validator.handleResult,
     getProducts
   );
-
+////
+// router.route("/pd").post(
+//   (req: Request, res: Response, next: NextFunction) => {
+//     uploadProductsToElasticSearch(req.body);
+//     next();
+//   },
+//   (req: Request, res: Response) => {
+//     res.send("upload");
+//   }
+// );
+////
 router.route("/product").post(
   uploadToBuffer.fields([
     { name: "main_image", maxCount: 1 },
