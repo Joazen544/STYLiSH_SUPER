@@ -85,14 +85,14 @@ export async function signIn(req: Request, res: Response) {
   }
 }
 
-async function isFbTokenValid(userToken: string) {
-  const response = await axios.get(`
-    https://graph.facebook.com/debug_token?
-    input_token=${userToken}
-    &access_token=${FB_APP_ID}|${FB_APP_SECRET}
-  `);
-  return response?.data?.data?.is_valid ?? false;
-}
+// async function isFbTokenValid(userToken: string) {
+//   const response = await axios.get(`
+//     https://graph.facebook.com/debug_token?
+//     input_token=${userToken}
+//     &access_token=${FB_APP_ID}|${FB_APP_SECRET}
+//   `);
+//   return response?.data?.data?.is_valid ?? false;
+// }
 
 const ProfileSchema = z.object({
   id: z.string(),
@@ -106,20 +106,30 @@ const ProfileSchema = z.object({
 });
 
 async function getFbProfileData(userToken: string) {
+  console.log("before fetch");
+
   const response = await axios.get(
-    `https://graph.facebook.com/v16.0/me?fields=id,name,email,picture&access_token=${userToken}`
+    `https://graph.facebook.com/v18.0/me?fields=id,name,email,picture&access_token=${userToken}`
   );
+  console.log("after fetch");
+
   const profile = ProfileSchema.parse(response.data);
   return profile;
 }
 
 export async function fbLogin(req: Request, res: Response) {
   try {
+    console.log("logging in ");
+
     const { access_token: userToken } = req.body;
-    if (!(await isFbTokenValid(userToken))) {
-      throw new Error("invalid access_token");
-    }
+    console.log(userToken);
+
+    // if (!(await isFbTokenValid(userToken))) {
+    //   throw new Error("invalid access_token");
+    // }
     const profile = await getFbProfileData(userToken);
+    console.log("========");
+    console.log(profile);
 
     const user = await userModel.findUser(profile.email);
 
@@ -128,7 +138,7 @@ export async function fbLogin(req: Request, res: Response) {
       await userProviderModel.createFbProvider(userId, profile.id);
       const token = await signJWT(userId);
       res
-        .cookie("jwtToken", token, COOKIE_OPTIONS)
+        .cookie("jwtToken", token)
         .status(200)
         .json({
           data: {
