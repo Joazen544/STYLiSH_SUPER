@@ -35,6 +35,27 @@ export async function uploadProductsToElasticSearch(productData) {
         console.log("something is wrong creating product to elasticsearch");
     }
 }
+export async function searchHotProducts() {
+    console.log("elast searching");
+    const hotProducts = await client.search({
+        index: "products",
+        _source: ["id", "click"],
+        body: {
+            sort: [
+                {
+                    click: {
+                        order: "desc",
+                    },
+                },
+            ],
+            size: 10,
+        },
+    });
+    console.log(JSON.stringify(hotProducts, null, 4));
+    const returnId = hotProducts.hits.hits.map((product) => product._source.id);
+    console.log(returnId);
+    return returnId;
+}
 export async function searchProductsIdsFromElastic(paging, keyword, color, size, category, sorting) {
     const must = [];
     console.log(paging);
@@ -151,7 +172,7 @@ export async function addClickToElasticSearch(productId) {
                         must: [
                             {
                                 match: {
-                                    _id: productId,
+                                    id: productId,
                                 },
                             },
                         ],

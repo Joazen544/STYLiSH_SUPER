@@ -53,6 +53,33 @@ export async function uploadProductsToElasticSearch(productData: {
   }
 }
 
+export async function searchHotProducts() {
+  console.log("elast searching");
+
+  const hotProducts = await client.search({
+    index: "products",
+    _source: ["id", "click"],
+    body: {
+      sort: [
+        {
+          click: {
+            order: "desc",
+          },
+        },
+      ],
+      size: 10,
+    },
+  });
+
+  console.log(JSON.stringify(hotProducts, null, 4));
+  const returnId = hotProducts.hits.hits.map(
+    (product: any) => product._source.id
+  );
+  console.log(returnId);
+
+  return returnId;
+}
+
 export async function searchProductsIdsFromElastic(
   paging: number,
   keyword: string,
@@ -190,7 +217,7 @@ export async function addClickToElasticSearch(productId: string) {
             must: [
               {
                 match: {
-                  _id: productId,
+                  id: productId,
                 },
               },
             ],

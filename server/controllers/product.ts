@@ -6,7 +6,12 @@ import { NextFunction, Request, Response } from "express";
 import { fileTypeFromBuffer } from "file-type";
 import { product } from "../schema/schema.js";
 import { Redis } from "ioredis";
-import { uploadProductsToElasticSearch } from "../models/elasticsearch.js";
+import {
+  uploadProductsToElasticSearch,
+  searchHotProducts,
+  addClickToElasticSearch,
+} from "../models/elasticsearch.js";
+
 // import dotenv from "dotenv";
 // dotenv.config();
 
@@ -19,78 +24,78 @@ export const redis = new Redis({
 const DOMAIN_NAME = process.env.DOMAIN_NAME;
 
 function resp(productsData: any, next_paging: any = -1) {
- 
-    const resData = {
-      data: productsData.map((i: any) => {
+  const resData = {
+    data: productsData.map((i: any) => {
+      // console.log(i.size);
+      const copyArr = i.size;
+      const changeSizes = [...copyArr];
+      // console.log(changeSizes);
 
-        // console.log(i.size);
-        const copyArr = i.size;
-        const changeSizes = [...copyArr];
-        // console.log(changeSizes);
+      const colorsSet = new Set();
+      const sizesSet = new Set();
 
-        const colorsSet = new Set();
-        const sizesSet = new Set();
+      i.color.forEach((color: any, index: number) => {
+        colorsSet.add(
+          JSON.stringify({ code: color, name: i.colorName[index] })
+        );
+        sizesSet.add(i.size[index]);
+      });
 
-        i.color.forEach((color: any, index: number) => {
-          colorsSet.add(JSON.stringify({ code: color, name: i.colorName[index] }));
-          sizesSet.add(i.size[index]);
+      const colors = Array.from(colorsSet).map((colorString: any) =>
+        JSON.parse(colorString)
+      );
+      const sizes = Array.from(sizesSet).map((size: any) => size);
+
+      const customSizeOrder = ["XS", "S", "M", "L", "XL"];
+
+      sizes.sort((a, b) => {
+        return customSizeOrder.indexOf(a) - customSizeOrder.indexOf(b);
+      });
+
+      const variants: any = [];
+
+      i.color.forEach((color: any, index: number) => {
+        variants.push({
+          color_code: color,
+          size: changeSizes[index],
+          stock: i.stock[index],
         });
+      });
 
-        const colors = Array.from(colorsSet).map((colorString: any) => JSON.parse(colorString));
-        const sizes = Array.from(sizesSet).map((size: any) => size);
+      const copyImg = i.images;
+      const changeImg = [...copyImg];
+      changeImg.shift();
 
-        const customSizeOrder = ['XS', 'S', 'M', 'L', 'XL'];
-        
-        
-        sizes.sort((a,b) => {
-          return customSizeOrder.indexOf(a) - customSizeOrder.indexOf(b);
-        })
-
-        const variants: any = [];
-
-        i.color.forEach((color: any, index: number) => {
-          variants.push({
-            color_code: color,
-            size: changeSizes[index],
-            stock: i.stock[index],
-          });
-        });
-        
-        const copyImg = i.images;
-        const changeImg = [...copyImg];
-        changeImg.shift();
-
-        return {
-          id: i._id,
-          category: i.category,
-          tags: i.tags,
-          title: i.title,
-          description: i.description,
-          price: i.price,
-          texture: i.texture,
-          wash: i.wash,
-          place: i.place,
-          note: i.note,
-          story: i.story,
-          colors,
-          sizes,
-          variants,
-          main_image: i.main_image,
-          images: changeImg,
-        };
-      }),
-      next_paging,
-    };
-    if(next_paging === null || next_paging === -1){
-      delete resData.next_paging;
-    }
-
-    return resData;
+      return {
+        id: i._id,
+        category: i.category,
+        tags: i.tags,
+        title: i.title,
+        description: i.description,
+        price: i.price,
+        texture: i.texture,
+        wash: i.wash,
+        place: i.place,
+        note: i.note,
+        story: i.story,
+        colors,
+        sizes,
+        variants,
+        main_image: i.main_image,
+        images: changeImg,
+      };
+    }),
+    next_paging,
+  };
+  if (next_paging === null || next_paging === -1) {
+    delete resData.next_paging;
   }
+
+  return resData;
+}
 
 export async function getProducts(req: Request, res: Response) {
   try {
-
     const paging = Number(req.query.paging) || 0;
     const category = req.params.category;
     const PAGE_COUNT = 7;
@@ -163,22 +168,24 @@ export async function getProduct(req: Request, res: Response) {
 
     // Update history
     const userId = res.locals.userId;
-    const queueKey = `${userId}BrowsingHistory`;
-    const sortedSetKey = `${userId}BrowsingHistoryCounter`;
-    const maxQueueSize = 10;
-    const tags = productData?.tags;
+    if (userId) {
+      const queueKey = `${userId}BrowsingHistory`;
+      const sortedSetKey = `${userId}BrowsingHistoryCounter`;
+      const maxQueueSize = 10;
+      const tags = productData?.tags;
 
-    tags?.forEach(async (tag: string) => {
-      await redis.lpush(queueKey, tag);
-      await redis.zincrby(sortedSetKey, 1, tag);
+      tags?.forEach(async (tag: string) => {
+        await redis.lpush(queueKey, tag);
+        await redis.zincrby(sortedSetKey, 1, tag);
 
-      // Check queue length
-      const queueLength = await redis.llen(queueKey);
-      if (queueLength > maxQueueSize) {
-        const removedtag = (await redis.rpop(queueKey)) as string;
-        await redis.zincrby(sortedSetKey, -1, removedtag);
-      }
-    });
+        // Check queue length
+        const queueLength = await redis.llen(queueKey);
+        if (queueLength > maxQueueSize) {
+          const removedtag = (await redis.rpop(queueKey)) as string;
+          await redis.zincrby(sortedSetKey, -1, removedtag);
+        }
+      });
+    }
 
     if (productData) {
       productData.main_image = DOMAIN_NAME + productData.main_image;
@@ -391,12 +398,40 @@ export async function recommendProduct(req: Request, res: Response) {
   try {
     const userId = res.locals.userId;
     const hotProductIds: string[] = [];
-    let hotProducts;
+
+    let hotProducts: any;
     // Hot recommendation
     if (!userId) {
-      hotProducts = await product.find({ _id: { $in: hotProductIds } });
+      console.log("here!!!");
 
-      return res.status(200).json({ data: [hotProducts] });
+      const hotProductsId = await searchHotProducts();
+      hotProducts = await product.find({ _id: { $in: hotProductsId } });
+
+      const sortingMap = new Map();
+      hotProductsId.forEach((id: string, index: number) => {
+        sortingMap.set(`"${id}"`, index);
+      });
+      const sortedData: Array<string> = [];
+
+      hotProducts.forEach((product: any) => {
+        product.main_image = DOMAIN_NAME + product.main_image;
+        product.images.forEach((image: any, index: any) => {
+          product.images[index] = DOMAIN_NAME + product.images[index];
+        });
+      });
+
+      hotProducts.forEach((data: any, index: number) => {
+        const dataIdString = JSON.stringify(data._id);
+
+        sortedData[sortingMap.get(dataIdString)] = data;
+      });
+
+      const resData = resp(sortedData, null);
+      if (!resData.data.next_paging) {
+        delete resData.data.next_paging;
+      }
+
+      return res.status(200).json(resData);
     }
 
     // Personal recommendation
@@ -421,12 +456,14 @@ export async function recommendProduct(req: Request, res: Response) {
         .skip(0)
         .limit(10);
 
-      return res.status(200).json({ data: [productsData] });
+      const resData = resp(productsData[0]);
+      return res.status(200).json(resData);
     }
 
-    res.status(200).json({ data: [hotProducts] });
+    const resData = resp(hotProducts[0]);
+    res.status(200).json(resData);
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ errors: "save images failed" });
+    return res.status(500).json({ errors: "recomendation failed" });
   }
 }

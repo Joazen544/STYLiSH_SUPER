@@ -5,7 +5,7 @@ import { nanoid } from "nanoid";
 import { fileTypeFromBuffer } from "file-type";
 import { product } from "../schema/schema.js";
 import { Redis } from "ioredis";
-import { uploadProductsToElasticSearch } from "../models/elasticsearch.js";
+import { uploadProductsToElasticSearch, searchHotProducts, } from "../models/elasticsearch.js";
 // import dotenv from "dotenv";
 // dotenv.config();
 export const redis = new Redis({
@@ -18,14 +18,22 @@ function resp(productsData, next_paging = -1) {
     if (next_paging === -1) {
         const resData = {
             data: [productsData].map((i) => {
-                const colors = [];
+                const colorsSet = new Set();
+                const sizesSet = new Set();
+                // i.color.forEach((color: any, index: number) => {
+                //   colors.push({
+                //     code: color,
+                //     name: i.colorName[index],
+                //   });
+                // });
                 i.color.forEach((color, index) => {
-                    colors.push({
-                        code: color,
-                        name: i.colorName[index],
-                    });
+                    colorsSet.add(JSON.stringify({ code: color, name: i.colorName[index] }));
+                    sizesSet.add(i.size[index]);
                 });
-                const sizes = i.size;
+                const colors = Array.from(colorsSet).map((colorString) => JSON.parse(colorString));
+                const sizes = Array.from(sizesSet).map((size) => size);
+                // const colors = Array.from(colorsSet).map(JSON.parse);
+                // const sizes = Array.from(sizesSet);
                 const variants = [];
                 i.color.forEach((color, index) => {
                     variants.push({
@@ -96,12 +104,14 @@ function resp(productsData, next_paging = -1) {
             }),
             next_paging,
         };
+        if (next_paging === null) {
+            delete resData.next_paging;
+        }
         return resData;
     }
 }
 export async function getProducts(req, res) {
     try {
-        console.log("======================");
         const paging = Number(req.query.paging) || 0;
         const category = req.params.category;
         const PAGE_COUNT = 7;
@@ -162,20 +172,22 @@ export async function getProduct(req, res) {
         const productData = await product.findOneAndUpdate({ _id: id }, { $inc: { click: 1 } }, { new: true });
         // Update history
         const userId = res.locals.userId;
-        const queueKey = `${userId}BrowsingHistory`;
-        const sortedSetKey = `${userId}BrowsingHistoryCounter`;
-        const maxQueueSize = 10;
-        const tags = productData?.tags;
-        tags?.forEach(async (tag) => {
-            await redis.lpush(queueKey, tag);
-            await redis.zincrby(sortedSetKey, 1, tag);
-            // Check queue length
-            const queueLength = await redis.llen(queueKey);
-            if (queueLength > maxQueueSize) {
-                const removedtag = (await redis.rpop(queueKey));
-                await redis.zincrby(sortedSetKey, -1, removedtag);
-            }
-        });
+        if (userId) {
+            const queueKey = `${userId}BrowsingHistory`;
+            const sortedSetKey = `${userId}BrowsingHistoryCounter`;
+            const maxQueueSize = 10;
+            const tags = productData?.tags;
+            tags?.forEach(async (tag) => {
+                await redis.lpush(queueKey, tag);
+                await redis.zincrby(sortedSetKey, 1, tag);
+                // Check queue length
+                const queueLength = await redis.llen(queueKey);
+                if (queueLength > maxQueueSize) {
+                    const removedtag = (await redis.rpop(queueKey));
+                    await redis.zincrby(sortedSetKey, -1, removedtag);
+                }
+            });
+        }
         if (productData) {
             productData.main_image = DOMAIN_NAME + productData.main_image;
             productData.images.forEach((image, index) => {
@@ -343,8 +355,29 @@ export async function recommendProduct(req, res) {
         let hotProducts;
         // Hot recommendation
         if (!userId) {
-            hotProducts = await product.find({ _id: { $in: hotProductIds } });
-            return res.status(200).json({ data: [hotProducts] });
+            console.log("here!!!");
+            const hotProductsId = await searchHotProducts();
+            hotProducts = await product.find({ _id: { $in: hotProductsId } });
+            const sortingMap = new Map();
+            hotProductsId.forEach((id, index) => {
+                sortingMap.set(`"${id}"`, index);
+            });
+            const sortedData = [];
+            hotProducts.forEach((product) => {
+                product.main_image = DOMAIN_NAME + product.main_image;
+                product.images.forEach((image, index) => {
+                    product.images[index] = DOMAIN_NAME + product.images[index];
+                });
+            });
+            hotProducts.forEach((data, index) => {
+                const dataIdString = JSON.stringify(data._id);
+                sortedData[sortingMap.get(dataIdString)] = data;
+            });
+            const resData = resp(sortedData, null);
+            if (!resData.data.next_paging) {
+                delete resData.data.next_paging;
+            }
+            return res.status(200).json(resData);
         }
         // Personal recommendation
         const sortedSetKey = `${userId}BrowsingHistoryCounter`;
@@ -361,12 +394,14 @@ export async function recommendProduct(req, res) {
                 .find({ tags: { $in: tag } })
                 .skip(0)
                 .limit(10);
-            return res.status(200).json({ data: [productsData] });
+            const resData = resp(productsData[0]);
+            return res.status(200).json(resData);
         }
-        res.status(200).json({ data: [hotProducts] });
+        const resData = resp(hotProducts[0]);
+        res.status(200).json(resData);
     }
     catch (err) {
         console.error(err);
-        return res.status(500).json({ errors: "save images failed" });
+        return res.status(500).json({ errors: "recomendation failed" });
     }
 }
