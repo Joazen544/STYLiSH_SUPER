@@ -37,31 +37,37 @@ export async function uploadProductsToElasticSearch(productData) {
 }
 export async function searchProductsIdsFromElastic(paging, keyword, color, size, category, sorting) {
     const must = [];
+    console.log(paging);
+    console.log(keyword);
+    console.log(color);
+    console.log(size);
+    console.log(category);
+    console.log(sorting);
     if (keyword) {
         console.log("keyword exist~~~~~~");
         must.push({
-            match: {
+            match_phrase: {
                 title: keyword,
             },
         });
     }
     if (color) {
         must.push({
-            match: {
+            match_phrase: {
                 colors: color,
             },
         });
     }
     if (size) {
         must.push({
-            match: {
+            match_phrase: {
                 sizes: size,
             },
         });
     }
     if (category && category !== "all") {
         must.push({
-            match: {
+            match_phrase: {
                 category: category,
             },
         });
@@ -78,20 +84,27 @@ export async function searchProductsIdsFromElastic(paging, keyword, color, size,
     }
     else if (sorting === "price_asc") {
         //sorts = "price:asc";
+        console.log("price asc");
         sorts = {
             price: { order: "asc" },
         };
     }
     else if (sorting === "price_desc") {
         //sorts = "price:desc";
+        console.log("price desc");
         sorts = {
-            price: { order: "desc" },
+            price: {
+                order: "desc",
+            },
         };
     }
     else {
+        console.log("click popular");
         //sorts = "click:desc";
         sorts = {
-            click: { order: "desc" },
+            click: {
+                order: "desc",
+            },
         };
     }
     const result = await client.search({

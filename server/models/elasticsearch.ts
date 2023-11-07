@@ -63,11 +63,18 @@ export async function searchProductsIdsFromElastic(
 ) {
   const must = [];
 
+  console.log(paging);
+  console.log(keyword);
+  console.log(color);
+  console.log(size);
+  console.log(category);
+  console.log(sorting);
+
   if (keyword) {
     console.log("keyword exist~~~~~~");
 
     must.push({
-      match: {
+      match_phrase: {
         title: keyword,
       },
     });
@@ -75,7 +82,7 @@ export async function searchProductsIdsFromElastic(
 
   if (color) {
     must.push({
-      match: {
+      match_phrase: {
         colors: color,
       },
     });
@@ -83,7 +90,7 @@ export async function searchProductsIdsFromElastic(
 
   if (size) {
     must.push({
-      match: {
+      match_phrase: {
         sizes: size,
       },
     });
@@ -91,7 +98,7 @@ export async function searchProductsIdsFromElastic(
 
   if (category && category !== "all") {
     must.push({
-      match: {
+      match_phrase: {
         category: category,
       },
     });
@@ -109,18 +116,28 @@ export async function searchProductsIdsFromElastic(
     };
   } else if (sorting === "price_asc") {
     //sorts = "price:asc";
+    console.log("price asc");
+
     sorts = {
       price: { order: "asc" },
     };
   } else if (sorting === "price_desc") {
     //sorts = "price:desc";
+    console.log("price desc");
+
     sorts = {
-      price: { order: "desc" },
+      price: {
+        order: "desc",
+      },
     };
   } else {
+    console.log("click popular");
+
     //sorts = "click:desc";
     sorts = {
-      click: { order: "desc" },
+      click: {
+        order: "desc",
+      },
     };
   }
 

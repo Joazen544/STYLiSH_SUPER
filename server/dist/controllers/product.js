@@ -228,7 +228,7 @@ export async function searchProducts(req, res) {
             next_paging = null;
         }
         console.log(JSON.stringify(sortedData, null, 4));
-        const resData = resp(productsData, next_paging);
+        const resData = resp(sortedData, next_paging);
         res.json(resData);
     }
     catch (err) {
