@@ -14,6 +14,7 @@ import morganBody from "morgan-body";
 import fs from "fs";
 import "./models/mongo.js";
 import cors from "cors";
+import path from "path";
 
 const app = express();
 const port = 3000;
@@ -67,6 +68,12 @@ app.use(
 
 app.use("/uploads", express.static("./uploads"));
 app.use("/assets", express.static("./assets"));
+
+const __dirname = path.resolve();
+const test = path.join(__dirname, "../client");
+
+app.use("/", express.static(test));
+app.use("/products", express.static(test));
 
 app.use(errorHandler);
 
