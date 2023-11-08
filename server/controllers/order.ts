@@ -146,12 +146,12 @@ async function checkStockAndDecrease(list: listItem[]) {
 export const checkout = async (req: Request, res: Response) => {
   const userId = res.locals.userId;
   const { prime, order } = req.body;
-  console.log(JSON.stringify(order, null, 4));
+  //console.log(JSON.stringify(order, null, 4));
 
   const { shipping, payment, subtotal, freight, total, recipient, list } =
     order;
 
-  console.log(shipping);
+  //console.log(shipping);
 
   const { name, phone, email, address, time } = recipient;
   const orderDetails = [
@@ -201,7 +201,7 @@ export const checkout = async (req: Request, res: Response) => {
         },
       }
     );
-    console.log(response.data);
+    //console.log(response.data);
     if (response.data.status !== 0) {
       return res.status(400).json({ message: "Transaction Failed" });
     }

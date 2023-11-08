@@ -54,7 +54,7 @@ export async function uploadProductsToElasticSearch(productData: {
 }
 
 export async function searchHotProducts() {
-  console.log("elast searching");
+  //console.log("elast searching");
 
   const hotProducts = await client.search({
     index: "products",
@@ -71,11 +71,11 @@ export async function searchHotProducts() {
     },
   });
 
-  console.log(JSON.stringify(hotProducts, null, 4));
+  //console.log(JSON.stringify(hotProducts, null, 4));
   const returnId = hotProducts.hits.hits.map(
     (product: any) => product._source.id
   );
-  console.log(returnId);
+  //console.log(returnId);
 
   return returnId;
 }
@@ -108,7 +108,7 @@ export async function getAutoIds(keyword: string) {
     },
   });
 
-  console.log(JSON.stringify(result, null, 4));
+  //console.log(JSON.stringify(result, null, 4));
 
   return result.hits.hits.map((product: any) => {
     return product["_source"]["title"];
@@ -125,15 +125,15 @@ export async function searchProductsIdsFromElastic(
 ) {
   const must = [];
 
-  console.log(paging);
-  console.log(keyword);
-  console.log(color);
-  console.log(size);
-  console.log(category);
-  console.log(sorting);
+  // console.log(paging);
+  // console.log(keyword);
+  // console.log(color);
+  // console.log(size);
+  // console.log(category);
+  // console.log(sorting);
 
   if (keyword) {
-    console.log("keyword exist~~~~~~");
+    //console.log("keyword exist~~~~~~");
 
     must.push({
       match_phrase: {
@@ -169,7 +169,7 @@ export async function searchProductsIdsFromElastic(
   let sorts: any;
 
   if (sorting === "newest") {
-    console.log("newest~~~~~~~~~~~~~~~~~~~~~~~");
+    //console.log("newest~~~~~~~~~~~~~~~~~~~~~~~");
     //sorts = "time:desc";
     sorts = {
       time: {
@@ -178,14 +178,14 @@ export async function searchProductsIdsFromElastic(
     };
   } else if (sorting === "price_asc") {
     //sorts = "price:asc";
-    console.log("price asc");
+    //console.log("price asc");
 
     sorts = {
       price: { order: "asc" },
     };
   } else if (sorting === "price_desc") {
     //sorts = "price:desc";
-    console.log("price desc");
+    //console.log("price desc");
 
     sorts = {
       price: {
@@ -193,7 +193,7 @@ export async function searchProductsIdsFromElastic(
       },
     };
   } else {
-    console.log("click popular");
+    //console.log("click popular");
 
     //sorts = "click:desc";
     sorts = {
@@ -232,7 +232,7 @@ export async function searchProductsIdsFromElastic(
     },
   });
 
-  console.log(JSON.stringify(result, null, 4));
+  //console.log(JSON.stringify(result, null, 4));
 
   return result.hits.hits.map((product: any) => {
     return product["_source"]["id"];

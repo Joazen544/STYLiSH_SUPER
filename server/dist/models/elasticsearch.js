@@ -36,7 +36,7 @@ export async function uploadProductsToElasticSearch(productData) {
     }
 }
 export async function searchHotProducts() {
-    console.log("elast searching");
+    //console.log("elast searching");
     const hotProducts = await client.search({
         index: "products",
         _source: ["id", "click"],
@@ -51,9 +51,9 @@ export async function searchHotProducts() {
             size: 10,
         },
     });
-    console.log(JSON.stringify(hotProducts, null, 4));
+    //console.log(JSON.stringify(hotProducts, null, 4));
     const returnId = hotProducts.hits.hits.map((product) => product._source.id);
-    console.log(returnId);
+    //console.log(returnId);
     return returnId;
 }
 export async function getAutoIds(keyword) {
@@ -81,21 +81,21 @@ export async function getAutoIds(keyword) {
             },
         },
     });
-    console.log(JSON.stringify(result, null, 4));
+    //console.log(JSON.stringify(result, null, 4));
     return result.hits.hits.map((product) => {
         return product["_source"]["title"];
     });
 }
 export async function searchProductsIdsFromElastic(paging, keyword, color, size, category, sorting) {
     const must = [];
-    console.log(paging);
-    console.log(keyword);
-    console.log(color);
-    console.log(size);
-    console.log(category);
-    console.log(sorting);
+    // console.log(paging);
+    // console.log(keyword);
+    // console.log(color);
+    // console.log(size);
+    // console.log(category);
+    // console.log(sorting);
     if (keyword) {
-        console.log("keyword exist~~~~~~");
+        //console.log("keyword exist~~~~~~");
         must.push({
             match_phrase: {
                 title: keyword,
@@ -125,7 +125,7 @@ export async function searchProductsIdsFromElastic(paging, keyword, color, size,
     }
     let sorts;
     if (sorting === "newest") {
-        console.log("newest~~~~~~~~~~~~~~~~~~~~~~~");
+        //console.log("newest~~~~~~~~~~~~~~~~~~~~~~~");
         //sorts = "time:desc";
         sorts = {
             time: {
@@ -135,14 +135,14 @@ export async function searchProductsIdsFromElastic(paging, keyword, color, size,
     }
     else if (sorting === "price_asc") {
         //sorts = "price:asc";
-        console.log("price asc");
+        //console.log("price asc");
         sorts = {
             price: { order: "asc" },
         };
     }
     else if (sorting === "price_desc") {
         //sorts = "price:desc";
-        console.log("price desc");
+        //console.log("price desc");
         sorts = {
             price: {
                 order: "desc",
@@ -150,7 +150,7 @@ export async function searchProductsIdsFromElastic(paging, keyword, color, size,
         };
     }
     else {
-        console.log("click popular");
+        //console.log("click popular");
         //sorts = "click:desc";
         sorts = {
             click: {
@@ -184,7 +184,7 @@ export async function searchProductsIdsFromElastic(paging, keyword, color, size,
             },
         },
     });
-    console.log(JSON.stringify(result, null, 4));
+    //console.log(JSON.stringify(result, null, 4));
     return result.hits.hits.map((product) => {
         return product["_source"]["id"];
     });

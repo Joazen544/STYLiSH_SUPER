@@ -8,7 +8,7 @@ export async function searchProductsId(req, res, next) {
     const category = typeof req.query.category === "string" ? req.query.category : "";
     const sorting = typeof req.query.sorting === "string" ? req.query.sorting : "popular";
     console.log("==============");
-    console.log(color);
+    //console.log(color);
     // console.log(color, size, category, sorting);
     const productsIds = await searchProductsIdsFromElastic(paging, keyword, color, size, category, sorting);
     // If there're 7 ids, meaning there's next page

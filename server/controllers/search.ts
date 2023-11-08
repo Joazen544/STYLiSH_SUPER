@@ -19,7 +19,7 @@ export async function searchProductsId(
 
   console.log("==============");
 
-  console.log(color);
+  //console.log(color);
 
   // console.log(color, size, category, sorting);
 
