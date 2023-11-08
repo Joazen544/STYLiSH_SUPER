@@ -62,3 +62,106 @@ export async function createCampaign(req, res) {
         res.status(500).json({ errors: "create campaigns failed" });
     }
 }
+const DOMAIN_NAME = process.env.DOMAIN_NAME;
+function resp(productsData) {
+    const resData = productsData.map((i) => {
+        // console.log(i.size);
+        const copyArr = i.size;
+        const changeSizes = [...copyArr];
+        // console.log(changeSizes);
+        const colorsSet = new Set();
+        const sizesSet = new Set();
+        i.color.forEach((color, index) => {
+            colorsSet.add(JSON.stringify({ code: color, name: i.colorName[index] }));
+            sizesSet.add(i.size[index]);
+        });
+        const colors = Array.from(colorsSet).map((colorString) => JSON.parse(colorString));
+        const sizes = Array.from(sizesSet).map((size) => size);
+        const customSizeOrder = ["XS", "S", "M", "L", "XL"];
+        sizes.sort((a, b) => {
+            return customSizeOrder.indexOf(a) - customSizeOrder.indexOf(b);
+        });
+        const variants = [];
+        i.color.forEach((color, index) => {
+            variants.push({
+                color_code: color,
+                size: changeSizes[index],
+                stock: i.stock[index],
+            });
+        });
+        const copyImg = i.images;
+        const changeImg = [...copyImg];
+        changeImg.shift();
+        return {
+            id: i._id,
+            category: i.category,
+            tags: i.tags,
+            title: i.title,
+            description: i.description,
+            price: i.price,
+            texture: i.texture,
+            wash: i.wash,
+            place: i.place,
+            note: i.note,
+            story: i.story,
+            colors,
+            sizes,
+            variants,
+            main_image: i.main_image,
+            images: changeImg,
+        };
+    });
+    return resData;
+}
+export async function getHots(req, res) {
+    try {
+        const hotCasuals = await product.find({ tags: { $regex: /3415/ } });
+        const hotFormals = await product.find({ tags: { $regex: /Formal/ } });
+        const hot89 = await product.find({ tags: { $regex: /89/ } });
+        hotCasuals.forEach((pd, index) => {
+            pd.main_image = DOMAIN_NAME + pd.main_image;
+            pd.images.forEach((image, ind) => {
+                pd.images[ind] = DOMAIN_NAME + pd.images[ind];
+            });
+        });
+        // console.log(hotCasuals)
+        hotFormals.forEach((pd, index) => {
+            pd.main_image = DOMAIN_NAME + pd.main_image;
+            pd.images.forEach((image, ind) => {
+                pd.images[ind] = DOMAIN_NAME + pd.images[ind];
+            });
+        });
+        hot89.forEach((pd, index) => {
+            pd.main_image = DOMAIN_NAME + pd.main_image;
+            pd.images.forEach((image, ind) => {
+                pd.images[ind] = DOMAIN_NAME + pd.images[ind];
+            });
+        });
+        // 資料轉換並且放入 data array
+        const data = [];
+        const casualTags = { title: "casual", products: [] };
+        hotCasuals.forEach((product) => {
+            const formattedData = resp(product);
+            console.log(formattedData);
+            casualTags.products.push(formattedData);
+        });
+        const formalTags = { title: "formal", products: [] };
+        hotFormals.forEach((product) => {
+            const formattedData = resp(product);
+            formalTags.products.push(formattedData);
+        });
+        const eightNineTags = { title: "89", products: [] };
+        hot89.forEach((product) => {
+            const formattedData = resp(product);
+            eightNineTags.products.push(formattedData);
+        });
+        data.push(casualTags);
+        data.push(formalTags);
+        data.push(eightNineTags);
+        res.status(200).json({ data });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ errors: "Get hots failed" });
+    }
+}
