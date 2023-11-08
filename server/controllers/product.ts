@@ -401,6 +401,37 @@ export async function createProduct(req: Request, res: Response) {
   }
 }
 
+async function getHotProducts() {
+  const hotProductsId = await searchHotProducts();
+  const hotProducts = await product.find({ _id: { $in: hotProductsId } });
+
+  const sortingMap = new Map();
+  hotProductsId.forEach((id: string, index: number) => {
+    sortingMap.set(`"${id}"`, index);
+  });
+  const sortedData: Array<string> = [];
+
+  hotProducts.forEach((product: any) => {
+    product.main_image = DOMAIN_NAME + product.main_image;
+    product.images.forEach((image: any, index: any) => {
+      product.images[index] = DOMAIN_NAME + product.images[index];
+    });
+  });
+
+  hotProducts.forEach((data: any, index: number) => {
+    const dataIdString = JSON.stringify(data._id);
+
+    sortedData[sortingMap.get(dataIdString)] = data;
+  });
+
+  const resData = resp(sortedData, null);
+  if (!resData.data.next_paging) {
+    delete resData.data.next_paging;
+  }
+
+  return resData;
+}
+
 export async function recommendProduct(req: Request, res: Response) {
   try {
     const userId = res.locals.userId;
@@ -411,32 +442,7 @@ export async function recommendProduct(req: Request, res: Response) {
     if (!userId) {
       console.log("here!!!");
 
-      const hotProductsId = await searchHotProducts();
-      hotProducts = await product.find({ _id: { $in: hotProductsId } });
-
-      const sortingMap = new Map();
-      hotProductsId.forEach((id: string, index: number) => {
-        sortingMap.set(`"${id}"`, index);
-      });
-      const sortedData: Array<string> = [];
-
-      hotProducts.forEach((product: any) => {
-        product.main_image = DOMAIN_NAME + product.main_image;
-        product.images.forEach((image: any, index: any) => {
-          product.images[index] = DOMAIN_NAME + product.images[index];
-        });
-      });
-
-      hotProducts.forEach((data: any, index: number) => {
-        const dataIdString = JSON.stringify(data._id);
-
-        sortedData[sortingMap.get(dataIdString)] = data;
-      });
-
-      const resData = resp(sortedData, null);
-      if (!resData.data.next_paging) {
-        delete resData.data.next_paging;
-      }
+      const resData = await getHotProducts();
 
       return res.status(200).json(resData);
     }
@@ -444,30 +450,31 @@ export async function recommendProduct(req: Request, res: Response) {
     // Personal recommendation
     const sortedSetKey = `${userId}BrowsingHistoryCounter`;
     let tag;
-    const mostFrequentTag = await redis.zrevrange(
-      sortedSetKey,
-      0,
-      0,
-      "WITHSCORES"
-    );
+    if (redis.status === "ready") {
+      const mostFrequentTag = await redis.zrevrange(
+        sortedSetKey,
+        0,
+        0,
+        "WITHSCORES"
+      );
 
-    if (mostFrequentTag.length > 0) {
-      tag = mostFrequentTag[0];
-    } else {
-      tag = null;
+      if (mostFrequentTag.length > 0) {
+        tag = mostFrequentTag[0];
+      } else {
+        tag = null;
+      }
+
+      if (tag) {
+        const productsData = await product
+          .find({ tags: { $in: tag } })
+          .skip(0)
+          .limit(10);
+
+        const resData = resp(productsData[0]);
+        return res.status(200).json(resData);
+      }
     }
-
-    if (tag) {
-      const productsData = await product
-        .find({ tags: { $in: tag } })
-        .skip(0)
-        .limit(10);
-
-      const resData = resp(productsData[0]);
-      return res.status(200).json(resData);
-    }
-
-    const resData = resp(hotProducts[0]);
+    const resData = await getHotProducts();
     res.status(200).json(resData);
   } catch (err) {
     console.error(err);
