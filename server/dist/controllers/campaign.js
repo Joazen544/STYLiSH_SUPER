@@ -64,7 +64,7 @@ export async function createCampaign(req, res) {
 }
 const DOMAIN_NAME = process.env.DOMAIN_NAME;
 function resp(productsData) {
-    const resData = productsData.map((i) => {
+    const [resData] = productsData.map((i) => {
         // console.log(i.size);
         const copyArr = i.size;
         const changeSizes = [...copyArr];
@@ -140,21 +140,14 @@ export async function getHots(req, res) {
         // 資料轉換並且放入 data array
         const data = [];
         const casualTags = { title: "casual", products: [] };
-        hotCasuals.forEach((product) => {
-            const formattedData = resp(product);
-            console.log(formattedData);
-            casualTags.products.push(formattedData);
-        });
+        const formattedCasuals = resp(hotCasuals);
+        casualTags.products.push(formattedCasuals);
         const formalTags = { title: "formal", products: [] };
-        hotFormals.forEach((product) => {
-            const formattedData = resp(product);
-            formalTags.products.push(formattedData);
-        });
+        const formattedFormals = resp(hotFormals);
+        formalTags.products.push(formattedFormals);
         const eightNineTags = { title: "89", products: [] };
-        hot89.forEach((product) => {
-            const formattedData = resp(product);
-            eightNineTags.products.push(formattedData);
-        });
+        const formatted89 = resp(hot89);
+        eightNineTags.products.push(formatted89);
         data.push(casualTags);
         data.push(formalTags);
         data.push(eightNineTags);
