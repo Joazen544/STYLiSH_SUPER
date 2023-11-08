@@ -432,6 +432,13 @@ async function getHotProducts() {
   return resData;
 }
 
+export async function getAutoTitle(req: Request, res: Response) {
+  // try{
+  //   const keyword = req.query.keyword;
+  //   const titles = await getAutoIds();
+  // }
+}
+
 export async function recommendProduct(req: Request, res: Response) {
   try {
     const userId = res.locals.userId;

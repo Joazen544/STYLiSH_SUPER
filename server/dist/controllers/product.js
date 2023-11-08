@@ -340,6 +340,12 @@ async function getHotProducts() {
     }
     return resData;
 }
+export async function getAutoTitle(req, res) {
+    // try{
+    //   const keyword = req.query.keyword;
+    //   const titles = await getAutoIds();
+    // }
+}
 export async function recommendProduct(req, res) {
     try {
         const userId = res.locals.userId;
