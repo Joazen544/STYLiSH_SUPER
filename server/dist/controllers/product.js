@@ -131,7 +131,7 @@ export async function getProduct(req, res) {
         // Update click
         const productData = await product.findOneAndUpdate({ _id: id }, { $inc: { click: 1 } }, { new: true });
         try {
-            await addClickToElasticSearch(id);
+            addClickToElasticSearch(id);
         }
         catch (err) {
             console.log("something goes wrong adding click to elastic");

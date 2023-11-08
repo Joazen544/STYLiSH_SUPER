@@ -167,7 +167,7 @@ export async function getProduct(req: Request, res: Response) {
     );
 
     try {
-      await addClickToElasticSearch(id);
+      addClickToElasticSearch(id);
     } catch (err) {
       console.log("something goes wrong adding click to elastic");
       console.log(err);
