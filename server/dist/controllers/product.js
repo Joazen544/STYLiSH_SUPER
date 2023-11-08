@@ -5,7 +5,7 @@ import { nanoid } from "nanoid";
 import { fileTypeFromBuffer } from "file-type";
 import { product } from "../schema/schema.js";
 import { Redis } from "ioredis";
-import { uploadProductsToElasticSearch, searchHotProducts, } from "../models/elasticsearch.js";
+import { uploadProductsToElasticSearch, searchHotProducts, addClickToElasticSearch, } from "../models/elasticsearch.js";
 // import dotenv from "dotenv";
 // dotenv.config();
 export const redis = new Redis({
@@ -130,6 +130,13 @@ export async function getProduct(req, res) {
         const id = String(req.query.id);
         // Update click
         const productData = await product.findOneAndUpdate({ _id: id }, { $inc: { click: 1 } }, { new: true });
+        try {
+            await addClickToElasticSearch(id);
+        }
+        catch (err) {
+            console.log("something goes wrong adding click to elastic");
+            console.log(err);
+        }
         // Update history
         const userId = res.locals.userId;
         if (userId) {

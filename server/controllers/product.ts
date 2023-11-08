@@ -166,6 +166,13 @@ export async function getProduct(req: Request, res: Response) {
       { new: true }
     );
 
+    try {
+      await addClickToElasticSearch(id);
+    } catch (err) {
+      console.log("something goes wrong adding click to elastic");
+      console.log(err);
+    }
+
     // Update history
     const userId = res.locals.userId;
     if (userId) {
