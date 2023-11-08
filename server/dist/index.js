@@ -51,9 +51,9 @@ app.use(branch((req) => req.path.includes("/admin"), [authenticate]), express.st
 app.use("/uploads", express.static("./uploads"));
 app.use("/assets", express.static("./assets"));
 const __dirname = path.resolve();
-const test = path.join(__dirname, "../client");
-app.use("/", express.static(test));
-app.use("/*", express.static(test));
+const front = path.join(__dirname, "../client");
+app.use("/", express.static(front));
+app.use("/*", express.static(front));
 app.use(errorHandler);
 app.listen(port, () => {
     console.log(`STYLiSH listening on port ${port}`);
