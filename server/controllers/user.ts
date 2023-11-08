@@ -149,7 +149,7 @@ export async function fbLogin(req: Request, res: Response) {
               name: profile.name,
               email: profile.email,
               picture: "",
-              provider: userProviderModel.PROVIDER.FACEBOOK,
+              provider: "facebook",
             },
           },
         });
@@ -172,7 +172,7 @@ export async function fbLogin(req: Request, res: Response) {
           access_expired: EXPIRE_TIME,
           user: {
             ...user,
-            provider: userProviderModel.PROVIDER.FACEBOOK,
+            provider: "facebook",
           },
         },
       });
