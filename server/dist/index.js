@@ -53,7 +53,7 @@ app.use("/assets", express.static("./assets"));
 const __dirname = path.resolve();
 const test = path.join(__dirname, "../client");
 app.use("/", express.static(test));
-app.use("/products", express.static(test));
+app.use("/*", express.static(test));
 app.use(errorHandler);
 app.listen(port, () => {
     console.log(`STYLiSH listening on port ${port}`);

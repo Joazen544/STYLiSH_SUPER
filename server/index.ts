@@ -73,7 +73,7 @@ const __dirname = path.resolve();
 const test = path.join(__dirname, "../client");
 
 app.use("/", express.static(test));
-app.use("/products", express.static(test));
+app.use("/*", express.static(test));
 
 app.use(errorHandler);
 
