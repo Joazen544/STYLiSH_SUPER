@@ -1,6 +1,4 @@
-import { z } from "zod";
 import * as cache from "../utils/cache.js";
-import * as campaignModel from "../models/campaign.js";
 import { product, campaign } from "../schema/schema.js";
 const CACHE_KEY = cache.getCampaignKey();
 //
@@ -9,9 +7,10 @@ export async function getCampaigns(req, res) {
         // Check cache first
         const cachedCampaigns = await cache.get(CACHE_KEY);
         if (cachedCampaigns) {
-            const campaigns = z
-                .array(campaignModel.CampaignSchema)
-                .parse(JSON.parse(cachedCampaigns));
+            // const campaigns = z
+            //   .array(campaignModel.CampaignSchema)
+            //   .parse(JSON.parse(cachedCampaigns));
+            const campaigns = JSON.parse(cachedCampaigns);
             res.status(200).json({
                 data: campaigns,
             });
@@ -48,9 +47,9 @@ export async function createCampaign(req, res) {
             throw new Error("no picture");
         const { filename } = req.file;
         const campaignId = await campaign.create({
-            "product_id": productId,
-            "story": story,
-            "picture": `/uploads/${filename}`,
+            product_id: productId,
+            story: story,
+            picture: `/uploads/${filename}`,
         });
         await cache.del(CACHE_KEY);
         res.status(200).json({ data: campaignId });
