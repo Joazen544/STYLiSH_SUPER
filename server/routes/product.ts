@@ -8,6 +8,7 @@ import {
   checkFileType,
   saveImagesToDisk,
   recommendProduct,
+  getAutoTitle,
 } from "../controllers/product.js";
 import { searchProductsId } from "../controllers/search.js";
 import { uploadToBuffer } from "../middleware/multer.js";
@@ -28,6 +29,10 @@ router
     searchProductsId,
     searchProducts
   );
+
+router
+  .route("/products/auto")
+  .get(query("keyword").not().isEmpty(), validator.handleResult, getAutoTitle);
 
 router
   .route("/products/details")

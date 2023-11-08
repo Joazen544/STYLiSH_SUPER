@@ -80,6 +80,41 @@ export async function searchHotProducts() {
   return returnId;
 }
 
+export async function getAutoIds(keyword: string) {
+  const result: any = await client.search({
+    index: "products",
+
+    _source: ["id", "click", "title"],
+    body: {
+      sort: [
+        {
+          click: {
+            order: "desc",
+          },
+        },
+      ],
+      size: 5,
+      from: 0,
+
+      query: {
+        bool: {
+          must: {
+            match_phrase: {
+              title: keyword,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  console.log(JSON.stringify(result, null, 4));
+
+  return result.hits.hits.map((product: any) => {
+    return product["_source"]["title"];
+  });
+}
+
 export async function searchProductsIdsFromElastic(
   paging: number,
   keyword: string,

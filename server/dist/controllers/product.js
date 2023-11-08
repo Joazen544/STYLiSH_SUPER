@@ -5,7 +5,7 @@ import { nanoid } from "nanoid";
 import { fileTypeFromBuffer } from "file-type";
 import { product } from "../schema/schema.js";
 import { Redis } from "ioredis";
-import { uploadProductsToElasticSearch, searchHotProducts, addClickToElasticSearch, } from "../models/elasticsearch.js";
+import { uploadProductsToElasticSearch, searchHotProducts, addClickToElasticSearch, getAutoIds, } from "../models/elasticsearch.js";
 // import dotenv from "dotenv";
 // dotenv.config();
 export const redis = new Redis({
@@ -341,10 +341,24 @@ async function getHotProducts() {
     return resData;
 }
 export async function getAutoTitle(req, res) {
-    // try{
-    //   const keyword = req.query.keyword;
-    //   const titles = await getAutoIds();
-    // }
+    try {
+        const keyword = req.query.keyword;
+        if (typeof keyword == "string") {
+            const titles = await getAutoIds(keyword);
+            console.log(JSON.stringify(titles, null, 4));
+            res.json({ data: [titles] });
+        }
+        else {
+            return res.status(500).json({ errors: "keyword is not string" });
+        }
+    }
+    catch (err) {
+        console.log("something wrong getting auto complete");
+        console.log(err);
+        return res
+            .status(500)
+            .json({ errors: "something wrong getting auto complete" });
+    }
 }
 export async function recommendProduct(req, res) {
     try {
