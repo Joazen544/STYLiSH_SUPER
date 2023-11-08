@@ -222,7 +222,7 @@ export async function searchProducts(req: Request, res: Response) {
     const productsData = await product.find({
       _id: { $in: productIds },
     });
-    console.log(productsData);
+    //console.log(productsData);
 
     // console.log("=================");
 
@@ -438,9 +438,9 @@ export async function getAutoTitle(req: Request, res: Response) {
     const keyword = req.query.keyword;
     if (typeof keyword == "string") {
       const titles = await getAutoIds(keyword);
-      console.log(JSON.stringify(titles, null, 4));
+      //console.log(JSON.stringify(titles, null, 4));
 
-      res.json({ data: [titles] });
+      res.json({ data: titles });
     } else {
       return res.status(500).json({ errors: "keyword is not string" });
     }
