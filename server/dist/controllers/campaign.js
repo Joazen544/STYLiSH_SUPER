@@ -115,7 +115,7 @@ function resp(productsData) {
 }
 export async function getHots(req, res) {
     try {
-        const hotCasuals = await product.find({ tags: { $regex: /3415/ } });
+        const hotCasuals = await product.find({ tags: { $regex: /Casual/ } });
         const hotFormals = await product.find({ tags: { $regex: /Formal/ } });
         const hot89 = await product.find({ tags: { $regex: /89/ } });
         hotCasuals.forEach((pd, index) => {

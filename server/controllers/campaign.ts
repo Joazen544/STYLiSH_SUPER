@@ -146,7 +146,7 @@ interface Tags {
 
 export async function getHots(req: Request, res: Response) {
   try {
-    const hotCasuals = await product.find({ tags: { $regex: /3415/ } });
+    const hotCasuals = await product.find({ tags: { $regex: /Casual/ } });
     const hotFormals = await product.find({ tags: { $regex: /Formal/ } });
     const hot89 = await product.find({ tags: { $regex: /89/ } });
 
