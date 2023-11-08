@@ -186,9 +186,17 @@ export async function getHots(req: Request, res: Response) {
     const formatted89 = resp(hot89);
     eightNineTags.products.push(formatted89);
 
-    data.push(casualTags);
-    data.push(formalTags);
-    data.push(eightNineTags);
+    if (typeof hotCasuals[0] === "object") {
+      data.push(casualTags);
+    }
+
+    if (typeof hotFormals[0] === "object") {
+      data.push(formalTags);
+    }
+
+    if (typeof hot89[0] === "object") {
+      data.push(eightNineTags);
+    }
 
     res.status(200).json({ data });
   } catch (err) {
